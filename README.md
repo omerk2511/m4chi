@@ -42,7 +42,7 @@ Please make sure to update tests as appropriate.
 ## Screenshots
 
 ### LAN HTTP Serving over VPN
-![http serving](https://github.com/omerk2511/Sparta/blob/master/assets/1.png?raw=true)
+![http serving](https://github.com/omerk2511/m4chi/blob/master/assets/1.png?raw=true)
 
 ## Authors
 - **Omer Katz** - [omerk2511](https://github.com/omerk2511)
