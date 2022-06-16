@@ -5,6 +5,10 @@ from typing import Tuple
 from messages import encode_mac, decode_mac, encode_tup, decode_tup
 
 
+NULL_MAC = "00:00:00:00:00:00"
+BROADCAST_MAC = "ff:ff:ff:ff:ff:ff"
+
+
 class EtherType(IntEnum):
     ARP = 0x806
     IPV4 = 0x800
@@ -32,6 +36,10 @@ class Ether:
         dst, src = decode_mac(raw_dst), decode_mac(raw_src)
         return Ether(dst, src, typ, raw[ETHER_HEADER_LEN:])
 
+    @staticmethod
+    def broadcast(src: str, typ: EtherType, payload: bytes) -> "Ether":
+        return Ether(BROADCAST_MAC, src, typ, payload)
+
 
 class ArpOperation(IntEnum):
     REQUEST = 1
@@ -57,3 +65,9 @@ class ARP:
         raw_src, raw_dst = (raw_src_mac, raw_src_ip), (raw_dst_mac, raw_dst_ip)
         src, dst = decode_tup(raw_src), decode_tup(raw_dst)
         return ARP(operation, src, dst)
+
+    @staticmethod
+    def announce(mac: str, ip: str) -> "Ether":
+        src, dst = (mac, ip), (NULL_MAC, ip)
+        arp = ARP(ArpOperation.REQUEST, src, dst)
+        return Ether.broadcast(mac, EtherType.ARP, arp.serialize())
