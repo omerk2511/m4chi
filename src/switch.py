@@ -8,11 +8,14 @@ from typing import Dict, Set
 from typing_extensions import Literal
 
 
+LISTEN_QUEUE = 5
+
+
 class VpnSwitch:
     def __init__(self, ip: str, port: int, base: str, vendor: str):
         self.socket = socket()
         self.socket.bind((ip, port))
-        self.socket.listen(5)
+        self.socket.listen(LISTEN_QUEUE)
 
         self.pool = AddressPool(base, vendor)
         self.cam: Dict[str, VpnSession] = {}
