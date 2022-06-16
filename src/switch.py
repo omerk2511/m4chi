@@ -66,9 +66,12 @@ class VpnSwitch:
                 continue
 
             ether = Ether.deserialize(pkt)
-            for current in self.cam.values():
-                if current is session:
-                    continue
-                if ether.dst != current.mac and ether.dst != BROADCAST_MAC:
-                    continue
-                current.sock.send(pkt)
+
+            if ether.dst in self.cam:
+                self.cam[ether.dst].sock.send(pkt)
+
+            if ether.dst == BROADCAST_MAC:
+                for current in self.cam.values():
+                    if current is session:
+                        continue
+                    current.sock.send(pkt)
