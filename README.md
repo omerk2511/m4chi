@@ -18,17 +18,18 @@ optional arguments:
 ```
 
 ```
-usage: server.py [-h] [--base BASE] ip port
+usage: server.py [-h] [--base BASE] [--vendor VENDOR] ip port
 
 m4gnum's vpn server
 
 positional arguments:
-  ip           vpn server's ip
-  port         vpn server's port
+  ip               vpn server's ip
+  port             vpn server's port
 
 optional arguments:
-  -h, --help   show this help message and exit
-  --base BASE  vpn ip range base
+  -h, --help       show this help message and exit
+  --base BASE      vpn ip range base
+  --vendor VENDOR  vpn mac address vendor id
 ```
 
 ## Contributing
