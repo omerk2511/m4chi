@@ -1,27 +1,20 @@
 from session import VpnSession
+from pool import AddressPool
 from packets import Ether, ARP, BROADCAST_MAC
-from messages import MTU, decode_mac
+from messages import MTU
 from socket import socket
 from select import select
-from os import urandom
 from typing import Dict, Set
 from typing_extensions import Literal
 
 
-# TODO:: ip pool
-RESERVED_SUFFIXES = {0, 255}
-SUFFIX_LIMIT = 256
-
-
 class VpnSwitch:
-    def __init__(self, ip: str, port: int, base: str):
+    def __init__(self, ip: str, port: int, base: str, vendor: str):
         self.socket = socket()
         self.socket.bind((ip, port))
         self.socket.listen(5)
 
-        self.base = base
-        self.suffixes = {v for v in range(SUFFIX_LIMIT)} - RESERVED_SUFFIXES
-
+        self.pool = AddressPool(base, vendor)
         self.cam: Dict[str, VpnSession] = {}
 
     def __enter__(self) -> "VpnSwitch":
@@ -41,12 +34,7 @@ class VpnSwitch:
     def accept(self) -> None:
         sock, addr = self.socket.accept()
 
-        # TODO:: manage via pool as well
-        mac = decode_mac(b"\xfc\xd8\x47" + urandom(3))
-
-        suffix = self.suffixes.pop()
-        ip = f"{self.base}.{suffix}"
-
+        mac, ip = self.pool.alloc()
         session = VpnSession(sock, mac, ip)
 
         arp_announcement = ARP.announce(mac, ip).serialize()
@@ -73,8 +61,8 @@ class VpnSwitch:
             pkt = session.sock.recv(MTU)
 
             if not pkt:
-                # TODO:: pool.free(session.ip)
                 del self.cam[mac]
+                self.pool.free((session.mac, session.ip))
                 continue
 
             ether = Ether.deserialize(pkt)
