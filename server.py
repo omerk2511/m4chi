@@ -5,11 +5,8 @@ from argparse import ArgumentParser
 from socket import socket
 from select import select
 from os import urandom
-from struct import pack
 from typing import List, Tuple
-
-
-INFO_PACKET_FORMAT = ">6s4s"
+from messages import decode_mac, InfoPacket
 
 
 def main() -> None:
@@ -35,11 +32,12 @@ def main() -> None:
             suffix = options.pop()
             sessions.append((session, suffix))
 
-            ip = bytes([int(v) for v in f"{args.base}.{suffix}".split(".")])
-            mac = urandom(6)
+            mac = decode_mac(urandom(6))
+            ip = f"{args.base}.{suffix}"
+            info = InfoPacket(mac, ip)
 
             # TODO:: announce via arp?
-            session.send(pack(INFO_PACKET_FORMAT, mac, ip))
+            session.send(info.serialize())
 
         ready, _, _ = select([s for s, _ in sessions], [], [], 0)
         for session in ready:
@@ -51,6 +49,7 @@ def main() -> None:
                 sessions.remove((session, suffix))
                 continue
 
+            # TODO:: virtual hub -> virtual switch
             relevant = [s for s, _ in sessions if s is not session]
             for s in relevant:
                 s.send(pkt)
